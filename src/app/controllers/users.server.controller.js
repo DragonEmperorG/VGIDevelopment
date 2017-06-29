@@ -84,7 +84,13 @@ exports.login = function (req, res) {
                 //  生成Token值出错
         res.status(400).json({ error: 'Issue generating token' })
       } else {
-        res.status(200).json({ token: usersToken })
+        res.status(200).json({
+          status: {
+            code: 200,
+            message: '用户成功登录'
+          },
+          token: usersToken
+        })
       }
     })
   } else {
@@ -99,7 +105,6 @@ exports.login = function (req, res) {
  * @param {Object} res the response object
  */
 exports.logout = function (req, res) {
-  var messages = flash('Logged out', null)
   User.invalidateUserToken(req.user.username, function (err, user) {
         // console.log('user: ', user)
     if (err) {
@@ -143,12 +148,12 @@ exports.forgotAndReset = function (req, res) {
         // console.log("confirmationPassword: ", confirmationPassword);
   if (incomingResetToken && (newPassword === confirmationPassword)) {
     User.findUserByResetTokenOnly(incomingResetToken, function (err, user) {
-            // console.log(err);
+      // console.log(err);
       var currentTime = Date.now()
       var expiredTime = user.reset_token_expires_millis
-      console.log(currentTime)
-      console.log(user)
-      console.log(expiredTime)
+      // console.log(currentTime)
+      // console.log(user)
+      // console.log(expiredTime)
       if (currentTime < expiredTime) {
         user.setPassword(newPassword, function (err, user) {
           if (err) {
@@ -181,7 +186,7 @@ exports.forgotAndReset = function (req, res) {
  * @param {Object} res the response object
  */
 exports.resetPassword = function (req, res) {
-  console.log('GOT IN')
+  // console.log('GOT IN')
   var username = req.body.username
   var currentPassword = req.body.current_password
   var newPassword = req.body.new_password
