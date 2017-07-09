@@ -16,6 +16,7 @@ module.exports = function() {
         app.use(compress())
     }
 
+
     app.use(bodyParser.urlencoded({
         extended: true
     }))
@@ -27,6 +28,7 @@ module.exports = function() {
     app.use('/api', api)
     require('../app/routes/users.server.routes.js')(app)
     require('../app/routes/mapLabel.server.routes.js')(app)
+    require('../app/routes/task.server.routes.js')(app)
 
     // Set Static Folder
     app.use(express.static('../public'))

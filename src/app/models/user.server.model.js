@@ -3,7 +3,6 @@ var crypto = require('crypto')
 var jwt = require('jwt-simple')
 var passportLocalMongoose = require('passport-local-mongoose')
 
-
 var config = require('../../config/config')
 
 var TOKENSECRET = 'isie.sgg.whu.edu.cn'
@@ -53,6 +52,22 @@ var UserSchema = new Schema({
         type: Number,
         default: 0
     },
+    //用于保存用于所做的地图标记的索引
+    //一个 user--has many-->mapLabel，使用数组
+    user_mapLabel: [{
+        type: Schema.Types.ObjectId,
+        ref: 'MapLabel'
+    }],
+    //用于保存用户创建任务的索引,用户可创建多个任务
+    tasks: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Task'
+    }],
+    //用于保存用户做了哪些任务的索引，用户可做多个任务
+    user_task: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Task'
+    }],
 
     //  Token令牌
     token: { type: String },
@@ -61,15 +76,17 @@ var UserSchema = new Schema({
 
     //  用户核心信息
 
-    firstName: String,
-    lastName: String,
+    //用户的真实姓名
+    name: {
+        type: String
+    },
     age: {
         //  年龄
         type: Number
     },
     gender: {
         //  性别
-        type: Boolean
+        type: String
     },
     location: {
         //  位置
@@ -83,9 +100,9 @@ var UserSchema = new Schema({
         //  特长
         type: String
     },
-    portrait: {
+    avatar: {
         //  头像
-        type: Buffer
+        type: String
     },
     telephone: {
         //  电话号码
@@ -94,7 +111,6 @@ var UserSchema = new Schema({
 })
 
 UserSchema.plugin(passportLocalMongoose)
-
 
 //  定义用户模型的虚拟属性
 // 此法暂时无用
@@ -124,6 +140,7 @@ UserSchema.statics.hasExpired = function(created) {
 UserSchema.statics.findUser = function(username, token, cb) {
     var self = this
     this.findOne({ username: username }, function(err, usr) {
+        //console.log('id test:' + usr['_id'])
         if (err || !usr) {
             cb(err, null)
         } else if (usr.token && (token === usr.token)) {
@@ -186,17 +203,17 @@ UserSchema.statics.createUserToken = function(username, cb) {
             if (err) {
                 cb(err, null)
             } else {
-                console.log('about to cb with usr.token: ' + usr.token)
+                //console.log('about to cb with usr.token: ' + usr.token)
                 cb(false, usr.token) // token object, in turn, has a token property :)
             }
         })
     })
 }
 
-//
+//销毁token中和登录状态
 UserSchema.statics.invalidateUserToken = function(username, cb) {
-    var self = this
-    this.findOne({ username: username }, function(err, usr) {
+    var _this = this
+    _this.findOne({ username: username }, function(err, usr) {
         if (err || !usr) {
             console.log('err')
         }
@@ -209,6 +226,21 @@ UserSchema.statics.invalidateUserToken = function(username, cb) {
                 cb(false, 'removed')
             }
         })
+    })
+}
+
+//reset_token过期时，用于销毁reset_token与reset_token_expires_millis
+UserSchema.statics.invalidateResetToken = function(resetToken, cb) {
+    var _this = this
+    _this.findOne({ reset_token: resetToken }, function(err, usr) {
+        if (err || !usr) {
+            cb(err, null)
+        } else {
+            usr.reset_token = null
+            usr.reset_token_expires_millis = null
+            usr.save()
+            cb(false, usr)
+        }
     })
 }
 

@@ -13,7 +13,10 @@ module.exports = {
     // Development configuration options
     db: 'mongodb://localhost/mean-book',
     sessionSecret: 'developmentSessionSecret',
-    'ttl': 3600000, // 1 hour
-    'resetTokenExpiresMinutes': 20 // 20 minutes later
+    'ttl': 86400000, // 24 hour
+    'resetTokenExpiresMinutes': 20, // 20 minutes later
+    upload: {
+        path: process.cwd() + '/uploads'
+    }
 
 }
